@@ -1,7 +1,6 @@
 // render.js
 import { state } from './state.js';
 
-// Hàm vẽ tổng thể chính được gọi từ app.js
 export function render() {
   document.documentElement.setAttribute('data-theme', state.theme);
   const appEl = document.getElementById('app');
@@ -9,7 +8,7 @@ export function render() {
     appEl.innerHTML = buildApp();
   }
   
-  // Sau khi vẽ HTML xong, thông báo lại cho app.js để tái gắn các sự kiện tương tác
+  // Gọi hàm gắn sự kiện tương tác sau khi vẽ xong HTML
   if (typeof window.attachAllEvents === 'function') {
     window.attachAllEvents();
   }
@@ -47,7 +46,6 @@ function buildSidebar() {
 }
 
 function buildMain() {
-  // Logic hiển thị Dashboard Kanban (board) hoặc Danh sách (list)
   if (state.view === 'board') {
     return buildBoardView();
   } else {
@@ -57,11 +55,10 @@ function buildMain() {
 
 function buildBoardView() {
   const currentBucket = state.buckets.find(b => b.id === state.selectedBucketId);
-  if (!currentBucket) return `<div class="empty-state">Select or create a bucket to start</div>`;
+  if (!currentBucket) return `<div class="empty-state">Chọn hoặc tạo một bucket để bắt đầu</div>`;
 
   const statuses = ['To-do', 'On-going', 'Completed'];
   let columnsHtml = statuses.map(status => {
-    // Lọc dự án thuộc bucket hiện tại và trạng thái tương ứng
     const filteredProjects = state.projects.filter(p => p.bucketId === state.selectedBucketId && p.status === status);
     
     let cardsHtml = filteredProjects.map(p => `
@@ -88,27 +85,62 @@ function buildBoardView() {
   return `
     <div class="main-header">
       <h2>${currentBucket.name} Dashboard</h2>
-      <button class="btn-primary" id="btn-add-project"><i class="ti ti-plus"></i> New Project</button>
+      <div class="header-actions">
+         <button class="btn-secondary" id="btn-toggle-view"><i class="ti ti-list"></i> List View</button>
+         <button class="btn-primary" id="btn-add-project"><i class="ti ti-plus"></i> New Project</button>
+      </div>
     </div>
     <div class="board-layout">${columnsHtml}</div>
   `;
 }
 
 function buildListView() {
-  // Bản rút gọn sinh bảng danh sách (Mã đầy đủ của bạn chứa định dạng Table chi tiết)
-  return `<div class="list-layout"><h3>List View Mode</h3></div>`;
+  const currentBucket = state.buckets.find(b => b.id === state.selectedBucketId);
+  if (!currentBucket) return `<div class="empty-state">Chọn một bucket</div>`;
+
+  const filteredProjects = state.projects.filter(p => p.bucketId === state.selectedBucketId);
+  
+  let rowsHtml = filteredProjects.map(p => `
+    <tr>
+      <td><b>${p.name}</b></td>
+      <td>${p.pic || '-'}</td>
+      <td>${p.dueDate || '-'}</td>
+      <td><span class="badge">${p.status}</span></td>
+    </tr>
+  `).join('');
+
+  return `
+    <div class="main-header">
+      <h2>${currentBucket.name} (List View)</h2>
+      <button class="btn-secondary" id="btn-toggle-view"><i class="ti ti-layout-kanban"></i> Board View</button>
+    </div>
+    <table class="project-table" style="width:100%; border-collapse:collapse; margin-top:20px;">
+      <thead>
+        <tr style="text-align:left; border-bottom:2px solid #ddd;">
+          <th style="padding:10px;">Project Name</th>
+          <th>PIC</th>
+          <th>Due Date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rowsHtml || '<tr><td colspan="4" style="padding:10px; text-align:center;">No projects found</td></tr>'}
+      </tbody>
+    </table>
+  `;
 }
 
 function buildModal() {
   if (!state.modalCfg) return '';
   return `
     <div class="modal-backdrop">
-      <div class="modal-content">
+      <div class="modal-content" style="background:#fff; padding:20px; border-radius:8px; width:400px; margin:100px auto;">
         <h3>${state.modalCfg.title}</h3>
-        <div class="modal-body">
-          </div>
-        <div class="modal-footer">
-          <button class="btn-secondary" id="btn-modal-close">Cancel</button>
+        <div class="modal-body" style="margin:20px 0;">
+          <input type="text" id="new-project-name" placeholder="Project Name..." style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+        </div>
+        <div class="modal-footer" style="text-align:right;">
+          <button class="btn-secondary" id="btn-modal-close" style="margin-right:8px;">Cancel</button>
           <button class="btn-primary" id="btn-modal-save">Save</button>
         </div>
       </div>
