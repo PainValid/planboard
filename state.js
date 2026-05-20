@@ -3,7 +3,7 @@
 export const DEFAULT_DATA = {
   buckets: [
     { id: 1, name: "Marketing", color: "#6264A7" },
-    { id: 2, name: "Engineering", color: "#185FA5" },
+    { id: 2, name: "Engineering", color: "#185FA5" }
   ],
   globalTags: [
     { id: 1, name: "Marketing", color: "#6264A7" },
@@ -22,7 +22,7 @@ export const DEFAULT_DATA = {
       status: "On-going",
       tagIds: [1, 2],
       updates: [{ text: "Creative assets finalized for social media", date: "2026-05-15" }],
-      finance: { budget: "50000", actualInvest: "", monthlySaving: "", investType: "CAPEX" },
+      finance: { budget: "50000", actualInvest: "", monthlySaving: "", investType: "CAPEX", refs: [] },
       tasks: [
         { id: 101, name: "Create social media content", pic: "An Tran", startDate: "2026-05-10", dueDate: "2026-05-20", status: "Completed" },
         { id: 102, name: "Launch email campaign", pic: "Linh Nguyen", startDate: "2026-05-18", dueDate: "2026-05-28", status: "On-going" },
@@ -33,11 +33,10 @@ export const DEFAULT_DATA = {
   nextId: 500
 };
 
-// Trạng thái ứng dụng hiện tại
 export let state = {
   ...JSON.parse(JSON.stringify(DEFAULT_DATA)),
   selectedBucketId: 1,
-  view: 'board', // 'board' hoặc 'list'
+  view: 'board',
   selectedProjectId: null,
   projectTab: 'tasks',
   editingBucketId: null,
@@ -47,10 +46,9 @@ export let state = {
   filterTag: 'All',
   tagSearchQuery: '',
   theme: 'light',
-  modalCfg: null // Quản lý trạng thái đóng mở modal
+  modalCfg: null
 };
 
-// Tải dữ liệu cũ từ LocalStorage nếu có
 try {
   const saved = localStorage.getItem('planboard_data_msproject');
   if (saved) {
@@ -70,10 +68,9 @@ try {
     });
   }
 } catch (e) {
-  console.error("Lỗi đọc LocalStorage:", e);
+  console.error(e);
 }
 
-// Hàm lưu dữ liệu tự động
 export function saveLocal() {
   try {
     localStorage.setItem('planboard_data_msproject', JSON.stringify({
@@ -84,11 +81,10 @@ export function saveLocal() {
       theme: state.theme
     }));
   } catch (e) {
-    console.error("Lỗi ghi LocalStorage:", e);
+    console.error(e);
   }
 }
 
-// Hàm cập nhật lại bộ dữ liệu khi import file JSON mới
 export function updateState(newState) {
   state = { ...state, ...newState };
   saveLocal();
