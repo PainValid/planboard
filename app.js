@@ -1,5 +1,5 @@
 // ========== STATE MANAGEMENT ==========
-
+import { state, saveLocal } from './state.js';
 
 // Lưu trữ kích thước custom cho các cột của bảng Workspace
 let columnWidths = {
