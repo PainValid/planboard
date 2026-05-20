@@ -1,29 +1,95 @@
 // state.js
+
 export const DEFAULT_DATA = {
-  boards: [
+  buckets: [
+    { id: 1, name: "Marketing", color: "#6264A7" },
+    { id: 2, name: "Engineering", color: "#185FA5" },
+  ],
+  globalTags: [
+    { id: 1, name: "Marketing", color: "#6264A7" },
+    { id: 2, name: "High Priority", color: "#A32D2D" },
+    { id: 3, name: "Engineering", color: "#185FA5" },
+    { id: 4, name: "Infrastructure", color: "#5F5E5A" }
+  ],
+  projects: [
     {
-      id: 'b1',
-      name: 'Main Board',
-      buckets: [
-        { id: 'bk1', name: 'To Do', tasks: [] },
-        { id: 'bk2', name: 'Ongoing', tasks: [] },
-        { id: 'bk3', name: 'Done', tasks: [] }
+      id: 1,
+      bucketId: 1,
+      name: "Q3 Campaign Launch",
+      pic: "Linh Nguyen",
+      startDate: "2026-05-10",
+      dueDate: "2026-06-15",
+      status: "On-going",
+      tagIds: [1, 2],
+      updates: [{ text: "Creative assets finalized for social media", date: "2026-05-15" }],
+      finance: { budget: "50000", actualInvest: "", monthlySaving: "", investType: "CAPEX" },
+      tasks: [
+        { id: 101, name: "Create social media content", pic: "An Tran", startDate: "2026-05-10", dueDate: "2026-05-20", status: "Completed" },
+        { id: 102, name: "Launch email campaign", pic: "Linh Nguyen", startDate: "2026-05-18", dueDate: "2026-05-28", status: "On-going" },
+        { id: 103, name: "Performance analysis", pic: "Minh Le", startDate: "2026-06-01", dueDate: "2026-06-15", status: "To-do" }
       ]
     }
   ],
-  globalTags: []
+  nextId: 500
 };
 
-// Khởi tạo state từ LocalStorage hoặc dùng dữ liệu mặc định
-export let state = JSON.parse(localStorage.getItem('pb_v1_data')) || DEFAULT_DATA;
+// Trạng thái ứng dụng hiện tại
+export let state = {
+  ...JSON.parse(JSON.stringify(DEFAULT_DATA)),
+  selectedBucketId: 1,
+  view: 'board', // 'board' hoặc 'list'
+  selectedProjectId: null,
+  projectTab: 'tasks',
+  editingBucketId: null,
+  editingTagId: null,
+  filterStatus: 'All',
+  filterPic: 'All',
+  filterTag: 'All',
+  tagSearchQuery: '',
+  theme: 'light',
+  modalCfg: null // Quản lý trạng thái đóng mở modal
+};
 
-// Hàm lưu dữ liệu
-export function saveLocal() {
-  localStorage.setItem('pb_v1_data', JSON.stringify(state));
+// Tải dữ liệu cũ từ LocalStorage nếu có
+try {
+  const saved = localStorage.getItem('planboard_data_msproject');
+  if (saved) {
+    const d = JSON.parse(saved);
+    state.buckets = d.buckets || state.buckets;
+    state.globalTags = d.globalTags || state.globalTags || [];
+    state.projects = d.projects || state.projects;
+    state.nextId = d.nextId || state.nextId;
+    state.theme = d.theme || 'light';
+    state.selectedBucketId = state.buckets[0]?.id || 1;
+    
+    state.projects.forEach(p => {
+      if (!p.tagIds) p.tagIds = [];
+      if (!p.finance) {
+        p.finance = { budget: '', actualInvest: '', monthlySaving: '', investType: 'CAPEX', refs: [] };
+      }
+    });
+  }
+} catch (e) {
+  console.error("Lỗi đọc LocalStorage:", e);
 }
 
-// Hàm cập nhật lại toàn bộ state khi Import file dữ liệu mới
+// Hàm lưu dữ liệu tự động
+export function saveLocal() {
+  try {
+    localStorage.setItem('planboard_data_msproject', JSON.stringify({
+      buckets: state.buckets,
+      globalTags: state.globalTags,
+      projects: state.projects,
+      nextId: state.nextId,
+      theme: state.theme
+    }));
+  } catch (e) {
+    console.error("Lỗi ghi LocalStorage:", e);
+  }
+}
+
+// Hàm cập nhật lại bộ dữ liệu khi import file JSON mới
 export function updateState(newState) {
-  state = newState;
+  state = { ...state, ...newState };
   saveLocal();
 }
